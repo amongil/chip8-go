@@ -1,4 +1,4 @@
-# chip8-go
+# go-chip8
 My own implementation of the [CHIP-8](https://en.wikipedia.org/wiki/CHIP-8). Written in Go.
 
 ## Description
