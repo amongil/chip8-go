@@ -7,9 +7,6 @@ func main() {
 
 	for {
 		//Emulate cycle
-
-		// Update timers
-		c.SP--
-		c.DT--
+		
 	}
 }
