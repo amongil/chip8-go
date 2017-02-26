@@ -128,7 +128,7 @@ func (c *CPU) NextCycle() {
 			c.PC += 2
 		}
 	case 0x5000: //SE Vx, Vy
-		if int(c.registers[int((c.instruction&0x0F00)>>8)]) != int(c.registers[int((c.instruction&0x00F0)>>8)]) {
+		if int(c.registers[int((c.instruction&0x0F00)>>8)]) != int(c.registers[int((c.instruction&0x00F0)>>4)]) {
 			c.PC += 2
 		}
 	case 0x6000: //LD Vx, byte
@@ -138,13 +138,49 @@ func (c *CPU) NextCycle() {
 	case 0x8000:
 		switch c.instruction & 0x000F {
 		case 0x0000: //LD Vx, Vy
-			c.registers[int((c.instruction&0x0F00)>>8)] = c.registers[int((c.instruction&0x00F0)>>8)]
+			c.registers[int((c.instruction&0x0F00)>>8)] = c.registers[int((c.instruction&0x00F0)>>4)]
 		case 0x0001: //OR Vx, Vy
-			c.registers[int((c.instruction&0x0F00)>>8)] |= c.registers[int((c.instruction&0x00F0)>>8)]
+			c.registers[int((c.instruction&0x0F00)>>8)] |= c.registers[int((c.instruction&0x00F0)>>4)]
 		case 0x0002: //AND Vx, Vy
-			c.registers[int((c.instruction&0x0F00)>>8)] &= c.registers[int((c.instruction&0x00F0)>>8)]
+			c.registers[int((c.instruction&0x0F00)>>8)] &= c.registers[int((c.instruction&0x00F0)>>4)]
 		case 0x0003: //XOR Vx, Vy
-			c.registers[int((c.instruction&0x0F00)>>8)] ^= c.registers[int((c.instruction&0x00F0)>>8)]
+			c.registers[int((c.instruction&0x0F00)>>8)] ^= c.registers[int((c.instruction&0x00F0)>>4)]
+		case 0x0004: //ADD Vx, Vy
+			if int(c.registers[int((c.instruction&0x0F00)>>8)])+int(c.registers[int((c.instruction&0x00F0)>>4)]) > 255 {
+				c.registers[15] = 1
+			} else {
+				c.registers[15] = 0
+			}
+			c.registers[int((c.instruction&0x0F00)>>8)] += c.registers[int((c.instruction&0x00F0)>>4)]
+		case 0x0005: //SUB Vx, Vy
+			if c.registers[int((c.instruction&0x0F00)>>8)] > c.registers[int((c.instruction&0x00F0)>>4)] {
+				c.registers[15] = 1
+			} else {
+				c.registers[15] = 0
+			}
+			c.registers[int((c.instruction&0x0F00)>>8)] -= c.registers[int((c.instruction&0x00F0)>>4)]
+		case 0x0006: //SHR Vx {, Vy}
+			if c.registers[int((c.instruction&0x0F00)>>8)]%2 != 0 {
+				c.registers[15] = 1
+			} else {
+				c.registers[15] = 0
+			}
+			c.registers[int((c.instruction&0x0F00)>>8)] /= 2
+		case 0x0007: //SUBN Vx, Vy
+			if c.registers[int((c.instruction&0x0F00)>>8)] < c.registers[int((c.instruction&0x00F0)>>4)] {
+				c.registers[15] = 1
+			} else {
+				c.registers[15] = 0
+			}
+			c.registers[int((c.instruction&0x0F00)>>8)] = c.registers[int((c.instruction&0x00F0)>>4)] - c.registers[int((c.instruction&0x0F00)>>8)]
+		case 0x000E: //SHL Vx {, Vy}
+			if int(c.registers[int((c.instruction&0x0F00)>>8)]) >= 128 {
+				c.registers[15] = 1
+			} else {
+				c.registers[15] = 0
+			}
+			c.registers[int((c.instruction&0x0F00)>>8)] *= 2
 		}
+	case 0x9000: //SNE Vx, Vy
 	}
 }
