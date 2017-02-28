@@ -2,7 +2,9 @@ package main
 
 import (
 	"io/ioutil"
+	"math/rand"
 	"os"
+	"time"
 )
 
 //CPU is a struct that represents the CHIP-8 CPU component
@@ -128,7 +130,7 @@ func (c *CPU) NextCycle() {
 			c.PC += 2
 		}
 	case 0x5000: //SE Vx, Vy
-		if int(c.registers[int((c.instruction&0x0F00)>>8)]) != int(c.registers[int((c.instruction&0x00F0)>>4)]) {
+		if int(c.registers[int((c.instruction&0x0F00)>>8)]) == int(c.registers[int((c.instruction&0x00F0)>>4)]) {
 			c.PC += 2
 		}
 	case 0x6000: //LD Vx, byte
@@ -182,5 +184,30 @@ func (c *CPU) NextCycle() {
 			c.registers[int((c.instruction&0x0F00)>>8)] *= 2
 		}
 	case 0x9000: //SNE Vx, Vy
+		if int(c.registers[int((c.instruction&0x0F00)>>8)]) != int(c.registers[int((c.instruction&0x00F0)>>4)]) {
+			c.PC += 2
+		}
+	case 0xA000: //LD I, addr
+		c.I = c.instruction & 0x0FFF
+	case 0xB000: //JP V0, addr
+		c.PC = uint16(int(c.instruction&0xFFF) + int(c.registers[0]))
+	case 0xC000: //RND Vx, byte
+		rand.Seed(time.Now().Unix())
+		c.registers[int((c.instruction&0x0F00)>>8)] = byte(rand.Intn(255)) & byte(c.instruction&0x00FF)
+	case 0xF000:
+		switch c.instruction & 0x00FF {
+		case 0x0007: //LD Vx, DT
+			c.registers[int((c.instruction&0x0F00)>>8)] = c.DT
+		case 0x000A: //LD Vx, K
+			c.registers[int((c.instruction&0x0F00)>>8)] = c.DT //TODO
+		case 0x0015: //LD DT, Vx
+			c.DT = c.registers[int((c.instruction&0x0F00)>>8)]
+		case 0x0018: //LD ST, Vx
+			c.ST = c.registers[int((c.instruction&0x0F00)>>8)]
+		case 0x001E: //ADD I, Vx
+			c.I += uint16(c.registers[int((c.instruction&0x0F00)>>8)])
+		case 0x0029: //LD F, Vx
+			c.I += uint16(c.registers[int((c.instruction&0x0F00)>>8)]) //TODO
+		}
 	}
 }
