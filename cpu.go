@@ -4,6 +4,7 @@ import (
 	"io/ioutil"
 	"math/rand"
 	"os"
+	"strconv"
 	"time"
 )
 
@@ -208,6 +209,19 @@ func (c *CPU) NextCycle() {
 			c.I += uint16(c.registers[int((c.instruction&0x0F00)>>8)])
 		case 0x0029: //LD F, Vx
 			c.I += uint16(c.registers[int((c.instruction&0x0F00)>>8)]) //TODO
+		case 0x0033: //LD B, Vx
+			bcd := strconv.Itoa(int(c.registers[int((c.instruction&0x0F00)>>8)]))
+			c.memory[c.I] = bcd[0]
+			c.memory[c.I+1] = bcd[1]
+			c.memory[c.I+2] = bcd[2]
+		case 0x0055: //LD [I], Vx
+			for i := 0; i < int((c.instruction&0x0F00)>>8); i++ {
+				c.memory[int(c.I)+i] = c.registers[i]
+			}
+		case 0x0065: //LD Vx, [I]
+			for i := 0; i < int((c.instruction&0x0F00)>>8); i++ {
+				c.registers[i] = c.memory[int(c.I)+i]
+			}
 		}
 	}
 }
